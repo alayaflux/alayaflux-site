@@ -1,4 +1,4 @@
-# alayaflux-sit
+# alayaflux-site
 # AlayaFlux
 
 From Thought to Reality.
