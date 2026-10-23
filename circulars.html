@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+  let password = prompt("Enter staff password to access Circulars:");
+  if (password !== "alaya123") {
+    alert("Incorrect password! Access denied.");
+    window.location.href = "index.html";
+  }
+  </script>
+  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Circulars – AlayaFlux</title>
