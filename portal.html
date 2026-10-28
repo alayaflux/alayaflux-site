@@ -157,8 +157,12 @@ async function staff(){
   ${(data||[]).map(p=>`<div style="border-top:1px solid var(--line);padding:10px 0"><b>${esc(p.staff_id)}</b>
    <div class="row"><input id="n${p.id}" value="${esc(p.name)}" style="flex:2;min-width:140px"><input id="d${p.id}" value="${esc(p.department)}" style="flex:2;min-width:140px">
    <select id="r${p.id}" style="flex:1;min-width:90px">${['staff','head','admin'].map(r=>`<option ${r===p.role?'selected':''}>${r}</option>`).join('')}</select>
-   <button class="sm" onclick="saveP('${p.id}')">Save</button></div></div>`).join('')}</div>`}
+   <button class="sm" onclick="saveP('${p.id}')">Save</button><button class="g sm" onclick="resetPw('${esc(p.staff_id)}')">Reset password</button></div></div>`).join('')}</div>`}
 async function saveP(id){const {error}=await sb.from('profiles').update({name:$('#n'+id).value.trim(),department:$('#d'+id).value.trim(),role:$('#r'+id).value}).eq('id',id);
   alert(error?error.message:'Saved')}
+async function resetPw(id){if(!confirm('Reset password for '+id+'? Their old password will stop working.'))return;
+  const {data,error}=await sb.functions.invoke('hyper-responder',{body:{staff_id:id}});
+  if(error||!data||data.error){alert('Reset failed: '+((data&&data.error)||(error&&error.message)||'unknown'));return}
+  prompt('New temporary password for '+data.staff_id+' (copy it, share privately):',data.password)}
 init();
 </script></body></html>
