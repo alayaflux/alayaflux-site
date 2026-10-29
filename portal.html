@@ -100,16 +100,16 @@ async function boot(){
   if(error||!data){await sb.auth.signOut();show('vLogin');$('#lmsg').textContent='Profile not found. Contact admin.';return}
   me=data; if(me.must_change_password){show('vPw');return}
   $('#who').textContent=me.name; $('#meta').textContent=me.staff_id+' | '+me.department+' | '+me.role;
-  const t=[['home','Home'],['reports','Reports'],['files','My files'],['seal','Seal']];
+  const t=[['home','Home'],['reports','Reports'],['files','My files'],['seal','Seal'],['workplace','Workplace']];
   if(me.role!=='staff')t.push(['team','Team']); if(me.role==='admin')t.push(['staff','Staff']);
   $('#tabs').innerHTML=t.map(x=>`<button data-t="${x[0]}" onclick="go('${x[0]}')">${x[1]}</button>`).join('');
-  show('vApp'); go('home');
+  show('vApp'); go('home'); loadLinks();
 }
 async function setPw(e){e.preventDefault();const a=$('#np').value,b=$('#np2').value,m=$('#pmsg');m.textContent='';
   if(a.length<10){m.textContent='Use at least 10 characters.';return} if(a!==b){m.textContent='Passwords do not match.';return}
   const {error}=await sb.auth.updateUser({password:a}); if(error){m.textContent=error.message;return}
   await sb.from('profiles').update({must_change_password:false}).eq('id',me.id); $('#np').value=$('#np2').value='';await boot()}
-function go(t){tab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+function go(t){if(t==='workplace'){openWork();return}tab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   ({home,reports,files,seal,team,staff})[t]()}
 
 async function home(){
@@ -169,7 +169,7 @@ async function team(){
 
 async function staff(){
   const {data}=await sb.from('profiles').select('*').order('staff_id');
-  $('#main').innerHTML=`<div class="card"><h3>Staff</h3><p class="mut">New staff: create the login in Supabase (Authentication, Add user), then set name, department and role here.</p>
+  $('#main').innerHTML=`<div class="card"><h3>Workplace link</h3><p class="mut">Team workspace invite link. Only logged-in staff can see it.</p><div class="row"><input id="wlu" value="${esc(workUrl||'')}" placeholder="https://..." style="flex:1;min-width:200px"><button class="sm" onclick="saveWork()">Save</button></div></div><div class="card"><h3>Staff</h3><p class="mut">New staff: create the login in Supabase (Authentication, Add user), then set name, department and role here.</p>
   ${(data||[]).map(p=>`<div style="border-top:1px solid var(--line);padding:10px 0"><b>${esc(p.staff_id)}</b>
    <div class="row"><input id="n${p.id}" value="${esc(p.name)}" style="flex:2;min-width:140px"><input id="d${p.id}" value="${esc(p.department)}" style="flex:2;min-width:140px">
    <select id="r${p.id}" style="flex:1;min-width:90px">${['staff','head','admin'].map(r=>`<option ${r===p.role?'selected':''}>${r}</option>`).join('')}</select>
@@ -286,5 +286,17 @@ async function slAddM(){const n=$('#sna').value.trim(),c=parseFloat($('#sca').va
 async function slSaveM(id){const n=$('#smn'+id).value.trim(),c=parseFloat($('#smc'+id).value);if(!n||!(c>=0)){slErr('Enter a name and the number of coins.');return}
   const {error}=await sb.from('seal_members').update({name:n,coins:c}).eq('id',id);if(error){slErr(error.message);return}seal()}
 async function slDelM(id){if(!confirm('Remove this member from the Seal?'))return;const {error}=await sb.from('seal_members').delete().eq('id',id);if(error){alert(error.message);return}seal()}
+
+/* ===== WORKPLACE link ===== */
+let workUrl='';
+async function loadLinks(){const {data}=await sb.from('portal_links').select('*').eq('key','workplace').maybeSingle();workUrl=(data&&data.url)||''}
+function openWork(){
+  if(workUrl){window.open(workUrl,'_blank','noopener');return}
+  if(me.role==='admin'){alert('Workplace link is not set yet. Open the Staff tab and paste it in the Workplace link box.');go('staff');return}
+  alert('The Workplace link is not set yet. Please ask the admin.')}
+async function saveWork(){const u=$('#wlu').value.trim();
+  if(u&&!/^https:\/\//.test(u)){alert('The link must start with https://');return}
+  const {error}=u?await sb.from('portal_links').upsert({key:'workplace',url:u}):await sb.from('portal_links').delete().eq('key','workplace');
+  if(error){alert(error.message);return}workUrl=u;alert('Saved')}
 init();
 </script></body></html>
