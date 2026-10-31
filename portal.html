@@ -364,7 +364,7 @@ async function idadmin(){
   const prof=idA.profiles.find(p=>p.id==idA.uid)||{};
   const awardStaff=idA.cards.filter(c=>c.programme_id==(open[0]||{}).id);
   $('#main').innerHTML=`<div class="card"><h3>1. Programme</h3>
-   ${idA.progs.map(p=>`<div class="row sp" style="border-top:1px solid var(--line);padding:8px 0"><span><b>${esc(p.name)}</b> <span class="tag s-${p.status==='open'?'submitted':'approved'}">${p.status}</span></span>${p.status==='open'?`<button class="w sm" onclick="idClose(${p.id})">Close programme</button>`:''}</div>`).join('')||'<p class="mut">No programme yet. Create one below.</p>'}
+   ${idA.progs.map(p=>`<div class="row sp" style="border-top:1px solid var(--line);padding:8px 0"><span><b>${esc(p.name)}</b> <span class="tag s-${p.status==='open'?'submitted':'approved'}">${p.status}</span></span>${p.status==='open'?`<button class="w sm" onclick="idClose(${p.id})">Close programme</button>`:`<button class="g sm" onclick="idReopen(${p.id})">Reopen programme</button>`}</div>`).join('')||'<p class="mut">No programme yet. Create one below.</p>'}
    <label>New programme name</label><input id="ipn" placeholder="e.g. Internship Program 2026-27"><div class="sl-inp"><input id="ips" type="date" style="flex:1"><input id="ipe" type="date" style="flex:1"><button class="sm" onclick="idNewProg()">Create</button></div><p class="msg" id="idm0"></p></div>
   <div class="card"><h3>2. Issue / edit ID card</h3>
    <label>Staff</label><select id="idu" onchange="idA.uid=this.value;idadmin()">${staffOpt}</select>
@@ -387,8 +387,13 @@ async function idadmin(){
 const idMsg=(id,t)=>{const e=$('#'+id);if(e)e.textContent=t;else alert(t)};
 async function idNewProg(){const n=$('#ipn').value.trim();if(!n){idMsg('idm0','Enter a programme name.');return}
   const {error}=await sb.from('programmes').insert({name:n,start_date:$('#ips').value||null,end_date:$('#ipe').value||null});if(error){idMsg('idm0',error.message);return}idadmin()}
-async function idClose(pid){if(!confirm('Close this programme? Final points of every staff with an ID card will be stored permanently and no more coins can be awarded.'))return;
+async function idClose(pid){const p=(idA.progs||[]).find(x=>x.id==pid)||{};
+  const t=prompt('Close "'+(p.name||'this programme')+'"?\nFinal points of every staff with an ID card will be saved and no more coins can be awarded.\n\nType CLOSE to confirm:');
+  if(t===null)return;if(t.trim().toUpperCase()!=='CLOSE'){alert('Not closed. You must type CLOSE.');return}
   const {error}=await sb.rpc('close_programme',{pid});if(error){alert(error.message);return}idadmin()}
+async function idReopen(pid){const p=(idA.progs||[]).find(x=>x.id==pid)||{};
+  if(!confirm('Reopen "'+(p.name||'this programme')+'"? The saved final results will be removed and recalculated the next time you close it. Coins already awarded stay.'))return;
+  const {error}=await sb.rpc('reopen_programme',{pid});if(error){alert(error.message);return}idadmin()}
 async function idSaveCard(){
   const uid=idA.uid,pid=+idA.pid,m='idm1';if(!pid){idMsg(m,'Create a programme first.');return}
   const pg=idA.progs.find(p=>p.id==pid);if(pg&&pg.status==='closed'){idMsg(m,'This programme is closed.');return}
