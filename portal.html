@@ -324,7 +324,7 @@ async function idcard(){
   $('#main').innerHTML='<div class="card"><p class="mut">Loading...</p></div>';
   const [c,p]=await Promise.all([sb.from('id_cards').select('*').eq('user_id',me.id).order('id'),sb.from('programmes').select('*').order('id')]);
   if(c.error||p.error){$('#main').innerHTML='<div class="card"><p class="msg">ID Card is not set up yet. Run the ID Card SQL in Supabase first.</p></div>';return}
-  const cards=c.data||[],progs=p.data||[];
+  const progs=(p.data||[]).filter(x=>!x.hidden),cards=(c.data||[]).filter(x=>progs.find(y=>y.id==x.programme_id));
   if(!cards.length){$('#main').innerHTML='<div class="card"><h3>ID Card</h3><p class="mut">Your ID card has not been issued yet. The admin will create it.</p></div>';return}
   if(!cards.find(x=>x.programme_id==idS.pid))idS.pid=cards[cards.length-1].programme_id;
   const card=cards.find(x=>x.programme_id==idS.pid),prog=progs.find(x=>x.id==idS.pid)||{};
@@ -355,7 +355,7 @@ async function idadmin(){
   $('#main').innerHTML='<div class="card"><p class="mut">Loading...</p></div>';
   const [pr,pg,ic,ca,rs]=await Promise.all([sb.from('profiles').select('*').order('staff_id'),sb.from('programmes').select('*').order('id'),sb.from('id_cards').select('*').order('id'),sb.from('coin_awards').select('*').order('id'),sb.from('programme_results').select('*').order('total_points')]);
   if(pg.error||ic.error){$('#main').innerHTML='<div class="card"><p class="msg">ID Card is not set up yet. Run the ID Card SQL in Supabase first.</p></div>';return}
-  idA.profiles=pr.data||[];idA.progs=pg.data||[];idA.cards=ic.data||[];idA.awards=ca.data||[];idA.results=rs.data||[];
+  idA.profiles=pr.data||[];idA.all=pg.data||[];idA.progs=idA.all.filter(p=>!p.hidden);idA.hid=idA.all.filter(p=>p.hidden);idA.cards=ic.data||[];idA.awards=ca.data||[];idA.results=rs.data||[];
   const open=idA.progs.filter(p=>p.status==='open'),sid=u=>((idA.profiles.find(p=>p.id==u)||{}).staff_id||'?');
   if(!idA.uid&&idA.profiles.length)idA.uid=idA.profiles[0].id; if(!idA.progs.find(p=>p.id==idA.pid))idA.pid=(open[0]||idA.progs[idA.progs.length-1]||{}).id||null;
   const staffOpt=idA.profiles.map(p=>`<option value="${p.id}" ${p.id==idA.uid?'selected':''}>${esc(p.staff_id)} ${esc(p.name)}</option>`).join('');
@@ -364,7 +364,8 @@ async function idadmin(){
   const prof=idA.profiles.find(p=>p.id==idA.uid)||{};
   const awardStaff=idA.cards.filter(c=>c.programme_id==(open[0]||{}).id);
   $('#main').innerHTML=`<div class="card"><h3>1. Programme</h3>
-   ${idA.progs.map(p=>`<div class="row sp" style="border-top:1px solid var(--line);padding:8px 0"><span><b>${esc(p.name)}</b> <span class="tag s-${p.status==='open'?'submitted':'approved'}">${p.status}</span></span>${p.status==='open'?`<button class="w sm" onclick="idClose(${p.id})">Close programme</button>`:`<button class="g sm" onclick="idReopen(${p.id})">Reopen programme</button>`}</div>`).join('')||'<p class="mut">No programme yet. Create one below.</p>'}
+   ${idA.progs.map(p=>idProgRow(p,false)).join('')||'<p class="mut">No programme yet. Create one below.</p>'}
+   ${idA.hid.length?`<p class="mut" style="margin:12px 0 0">Hidden programmes (not shown on ID cards)</p>${idA.hid.map(p=>idProgRow(p,true)).join('')}`:''}
    <label>New programme name</label><input id="ipn" placeholder="e.g. Internship Program 2026-27"><div class="sl-inp"><input id="ips" type="date" style="flex:1"><input id="ipe" type="date" style="flex:1"><button class="sm" onclick="idNewProg()">Create</button></div><p class="msg" id="idm0"></p></div>
   <div class="card"><h3>2. Issue / edit ID card</h3>
    <label>Staff</label><select id="idu" onchange="idA.uid=this.value;idadmin()">${staffOpt}</select>
@@ -385,8 +386,22 @@ async function idadmin(){
   <div class="card"><h3>4. Final results (closed programmes)</h3>${idA.progs.filter(p=>p.status==='closed').map(p=>`<p><b>${esc(p.name)}</b></p><div class="sc"><table><tr><th>Staff</th><th>Name</th><th>S</th><th>G</th><th>D</th><th>P</th><th>Total</th></tr>${idA.results.filter(r=>r.programme_id==p.id).sort((a,b)=>b.total_points-a.total_points).map(r=>`<tr><td>${esc(r.staff_id)}</td><td>${esc(r.full_name)}</td><td>${r.silver}</td><td>${r.gold}</td><td>${r.diamond}</td><td>${r.platinum}</td><td><b>${r.total_points}</b></td></tr>`).join('')}</table></div>`).join('')||'<p class="mut">No programme closed yet.</p>'}</div>`;
 }
 const idMsg=(id,t)=>{const e=$('#'+id);if(e)e.textContent=t;else alert(t)};
-async function idNewProg(){const n=$('#ipn').value.trim();if(!n){idMsg('idm0','Enter a programme name.');return}
-  const {error}=await sb.from('programmes').insert({name:n,start_date:$('#ips').value||null,end_date:$('#ipe').value||null});if(error){idMsg('idm0',error.message);return}idadmin()}
+function idProgRow(p,hid){
+  const used=(idA.cards||[]).some(c=>c.programme_id==p.id)||(idA.awards||[]).some(x=>x.programme_id==p.id)||(idA.results||[]).some(r=>r.programme_id==p.id);
+  const st=hid?'':(p.status==='open'?`<button class="w sm" onclick="idClose(${p.id})">Close programme</button>`:`<button class="g sm" onclick="idReopen(${p.id})">Reopen programme</button>`);
+  const hb=hid?`<button class="g sm" onclick="idHide(${p.id},false)">Show again</button>`:`<button class="g sm" onclick="idHide(${p.id},true)">Hide</button>`;
+  const del=used?'':`<button class="g sm" onclick="idDelProg(${p.id})">Delete</button>`;
+  return `<div style="border-top:1px solid var(--line);padding:10px 0"><div><b>${esc(p.name)}</b> <span class="tag s-${p.status==='open'?'submitted':'approved'}">${p.status}</span>${used?'':' <span class="mut" style="font-size:.8rem">(empty)</span>'}</div><div class="row" style="margin-top:6px">${st}${hb}${del}</div></div>`}
+async function idNewProg(){if(idNewProg.busy)return;const n=$('#ipn').value.trim();if(!n){idMsg('idm0','Enter a programme name.');return}
+  if((idA.all||[]).some(p=>!p.hidden&&p.name.trim().toLowerCase()===n.toLowerCase())){idMsg('idm0','A programme with this name already exists.');return}
+  idNewProg.busy=true;
+  const {error}=await sb.from('programmes').insert({name:n,start_date:$('#ips').value||null,end_date:$('#ipe').value||null});idNewProg.busy=false;if(error){idMsg('idm0',error.message);return}idadmin()}
+async function idHide(pid,flag){const p=(idA.all||[]).find(x=>x.id==pid)||{};
+  if(flag&&!confirm('Hide "'+(p.name||'this programme')+'"? It will not show on ID cards or in the coin form. Nothing is deleted and you can show it again.'))return;
+  const {error}=await sb.from('programmes').update({hidden:flag}).eq('id',pid);if(error){alert(error.message);return}idadmin()}
+async function idDelProg(pid){const p=(idA.all||[]).find(x=>x.id==pid)||{};
+  if(!confirm('Delete the empty programme "'+(p.name||'')+'" for good?'))return;
+  const {error}=await sb.rpc('delete_programme',{pid});if(error){alert(error.message);return}idadmin()}
 async function idClose(pid){const p=(idA.progs||[]).find(x=>x.id==pid)||{};
   const t=prompt('Close "'+(p.name||'this programme')+'"?\nFinal points of every staff with an ID card will be saved and no more coins can be awarded.\n\nType CLOSE to confirm:');
   if(t===null)return;if(t.trim().toUpperCase()!=='CLOSE'){alert('Not closed. You must type CLOSE.');return}
