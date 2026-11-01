@@ -55,7 +55,14 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .vm .card h3{color:var(--blue);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase}.vm .card p{color:var(--txt);font-size:1.05rem}
 .vals{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}.vals .card{display:flex;gap:12px;align-items:flex-start;padding:16px 18px}.vals .card b{font-weight:600}
 @media(min-width:760px){.vals{grid-template-columns:repeat(4,1fr)}.g4x{grid-template-columns:repeat(4,1fr)}}@media(min-width:560px) and (max-width:759px){.g4x{grid-template-columns:1fr 1fr}}
-.g4x .card h3{font-size:1.02rem}.g4x .card p{font-size:.93rem}.gimg{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:50% 24%;border-radius:10px;margin-bottom:14px;border:1px solid var(--line)}.gav{display:block;width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);margin:0 0 16px}</style>
+.g4x .card h3{font-size:1.02rem}.g4x .card p{font-size:.93rem}.gimg{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;object-position:50% 24%;border-radius:10px;margin-bottom:14px;border:1px solid var(--line)}.gav{display:block;width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);margin:0 0 16px}
+.pk-h{margin:46px 0 6px;font-size:1.5rem}.pk{display:grid;gap:16px;margin-top:6px}
+.pk .card{display:flex;flex-direction:column}.pk .card.hl{border-color:var(--blue);box-shadow:0 0 0 1px rgba(63,167,255,.35)}
+.pk .pl{margin-bottom:16px}.pk .card .foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);color:var(--blue);font-weight:600;font-size:.95rem}
+.how{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:26px 0 0;color:var(--mute);font-size:.95rem}.how b{color:var(--txt)}
+.how span.ar{color:var(--blue)}.pk-note{margin:14px 0 0;color:var(--mute);font-size:.92rem}.pk-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}.pk-cta .btn{margin-top:18px}.pk-cta .b2{color:var(--txt);border:1px solid var(--line)}.pk-cta .b2:hover{border-color:var(--blue)}
+@media(min-width:760px){.pk{grid-template-columns:repeat(3,1fr)}}
+</style>
 </head>
 <body>
 <header><nav class="wrap" aria-label="Main">
@@ -63,7 +70,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   <select class="lang" id="lang" aria-label="Language"><option value="en">English</option><option value="hi">हिंदी</option></select>
   <button data-t class="tog" id="tog" aria-expanded="false" aria-controls="menu">Menu</button>
   <ul class="menu" id="menu">
-    <li><a href="#home">Home</a></li><li><a data-t href="#vision">Vision</a></li><li><a data-t href="#about">About</a></li><li><a data-t href="#products">Products</a></li><li><a data-t href="#upcoming">Upcoming</a></li><li><a data-t href="#buildlog">Build log</a></li><li><a data-t href="#contact">Contact</a></li><li><a data-t href="team.html">Team</a></li><li><a data-t href="circulars.html">Circulars</a></li><li><a href="careers.html">Careers</a></li>
+    <li><a href="#home">Home</a></li><li><a data-t href="#vision">Vision</a></li><li><a data-t href="#about">About</a></li><li><a href="#services">Services</a></li><li><a data-t href="#products">Products</a></li><li><a data-t href="#upcoming">Upcoming</a></li><li><a data-t href="#buildlog">Build log</a></li><li><a data-t href="#contact">Contact</a></li><li><a data-t href="team.html">Team</a></li><li><a data-t href="circulars.html">Circulars</a></li><li><a href="careers.html">Careers</a></li>
 </ul>
 
 </nav></header>
@@ -101,6 +108,20 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   <h2>What we do</h2>
   <p class="lead">Beyond our own products, we work with organisations that want AI applied carefully and honestly.</p>
   <div class="grid g4x"><div class="card"><h3>AI Software Development</h3><p>Web and mobile applications with AI at their core.</p></div><div class="card"><h3>AI Consulting</h3><p>Clear guidance on where AI fits, and where it does not.</p></div><div class="card"><h3>Custom AI Solutions</h3><p>Shaped around the problem, not the trend.</p></div><div class="card"><h3>Machine Learning Models</h3><p>Built, evaluated and documented responsibly.</p></div><div class="card"><h3>Automation</h3><p>Reliable workflows that reduce repetitive work.</p></div><div class="card"><h3>Data Analytics</h3><p>Turning data into clear decisions.</p></div><div class="card"><h3>Research Collaboration</h3><p>Working with universities and institutions.</p></div><div class="card"><h3>Training &amp; Education</h3><p>Helping people learn to use AI well.</p></div></div>
+
+  <h3 class="pk-h" id="packages">Service packages</h3>
+  <p class="lead" style="margin-bottom:18px">Every project starts with a conversation and a written scope. Pricing is shared on request, once we understand what you need.</p>
+  <div class="pk">
+    <div class="card"><span class="tag">Starter</span><h3>Discovery &amp; Prototype</h3><p>For teams that want to test an idea before committing to a full build.</p>
+      <ul class="pl"><li>A discovery call to understand the problem</li><li>Honest advice on whether AI is the right fit</li><li>A written scope and plan</li><li>A small prototype or proof of concept</li></ul><div class="foot">Contact for quote</div></div>
+    <div class="card hl"><span class="tag">Growth</span><h3>Build &amp; Launch</h3><p>For organisations ready to build a working solution.</p>
+      <ul class="pl"><li>A custom web or mobile application, or an automation workflow</li><li>Design, development and testing</li><li>Review rounds agreed in the scope</li><li>Handover, documentation and an agreed support period</li></ul><div class="foot">Contact for quote</div></div>
+    <div class="card"><span class="tag">Partner</span><h3>Long-term Partnership</h3><p>For larger or ongoing work.</p>
+      <ul class="pl"><li>Ongoing development and improvement</li><li>Machine learning, analytics or research collaboration</li><li>Training and education programmes for your team</li><li>A dedicated point of contact</li></ul><div class="foot">Contact for quote</div></div>
+  </div>
+  <div class="how"><b>How we work:</b> <span>Discuss</span><span class="ar">&rarr;</span><span>Written scope and quote</span><span class="ar">&rarr;</span><span>Build and review</span><span class="ar">&rarr;</span><span>Handover and support</span></div>
+  <p class="pk-note">Scope, timelines and payment terms are agreed in writing before any work begins.</p>
+  <div class="pk-cta"><a class="btn b1" href="query.html">Request a quote</a><a class="btn b2" href="mailto:contact@alayaflux.com">Email us</a></div>
 </div></section>
 
 <section class="s alt" id="products"><div class="wrap">
